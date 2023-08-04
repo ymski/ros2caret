@@ -23,11 +23,11 @@ from rclpy import qos
 from rclpy.node import Node
 
 from ros2caret.verb import VerbExtension
+from .caret_record_init import init
 from tqdm import tqdm
 
 from tracetools_trace.tools import lttng, names, path
 from tracetools_trace.tools.signals import execute_and_handle_sigint
-from tracetools_trace.trace import init
 
 
 class CaretSessionNode(Node):
@@ -133,6 +133,14 @@ class RecordVerb(VerbExtension):
         parser.add_argument(
             '--light', dest='light_mode', action='store_true',
             help='light mode (record high level events only)')
+        parser.add_argument(
+            '--subbuffer-size-ust', dest='subbuffer_size_ust', type=int,
+            help='the size of the subbuffers for userspace events. '
+                 'available in iron or rolling only. ')
+        parser.add_argument(
+            '--subbuffer-size-kernel', dest='subbuffer_size_kernel', type=int,
+            help='the size of the subbuffers for kernel events. '
+                 'available in iron or rolling only. ')
 
     def main(self, *, args):
         if args.light_mode:
@@ -165,7 +173,7 @@ class RecordVerb(VerbExtension):
         init_args['ros_events'] = events_ust
         init_args['kernel_events'] = events_kernel
         # Note: keyword argument --append-trace has been added since iron.
-        if os.environ['ROS_DISTRO'] == 'iron' or os.environ['ROS_DISTRO'] == 'rolling':
+        if os.environ['ROS_DISTRO'] in ['iron', 'rolling']:
             init_args['append_trace'] = True
         # Note: key name of context_fields differs in galactic and humble,
         if os.environ['ROS_DISTRO'] == 'galactic':
@@ -173,6 +181,12 @@ class RecordVerb(VerbExtension):
         else:
             init_args['context_fields'] = context_names
         init_args['display_list'] = args.list
+        # Note: keyword argument --subbuffer_size_ust/kernel are available in iron or rolling.
+        if os.environ['ROS_DISTRO'] in ['iron', 'rolling']:
+            if args.subbuffer_size_ust:
+                init_args['subbuffer_size_ust'] = args.subbuffer_size_ust
+            if args.subbuffer_size_kernel:
+                init_args['subbuffer_size_kernel'] = args.subbuffer_size_kernel
         init(**init_args)
 
         def _run():

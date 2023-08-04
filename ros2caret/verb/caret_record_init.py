@@ -1,0 +1,85 @@
+import os
+import sys
+from typing import List
+from typing import Optional
+
+from tracetools_trace.tools import lttng
+from tracetools_trace.tools import path
+from tracetools_trace.tools import print_names_list
+
+def init(
+    *,
+    session_name: str,
+    base_path: Optional[str],
+    append_trace: bool,
+    ros_events: List[str],
+    kernel_events: List[str],
+    context_fields: List[str],
+    display_list: bool = False,
+    subbuffer_size_ust: int = 8 * 4096,
+    subbuffer_size_kernel: int = 32 * 4096,
+) -> bool:
+    """
+    Init and start tracing.
+
+    Raises RuntimeError on failure, in which case the tracing session might still exist.
+
+    :param session_name: the name of the session
+    :param base_path: the path to the directory in which to create the tracing session directory,
+        or `None` for default
+    :param append_trace: whether to append to the trace directory if it already exists, otherwise
+        an error is reported
+    :param ros_events: list of ROS events to enable
+    :param kernel_events: list of kernel events to enable
+    :param context_fields: list of context fields to enable
+    :param display_list: whether to display list(s) of enabled events and context names
+    :param subbuffer_size_ust: the size of the subbuffers for userspace events (defaults to 8 times
+        the usual page size)
+    :param subbuffer_size_kernel: the size of the subbuffers for kernel events (defaults to 32
+        times the usual page size, since there can be way more kernel events than UST events)
+    :return: True if successful, False otherwise
+    """
+    # Check if LTTng is installed right away before printing anything
+    if not lttng.is_lttng_installed():
+        sys.exit(2)
+
+    ust_enabled = len(ros_events) > 0
+    kernel_enabled = len(kernel_events) > 0
+    if ust_enabled:
+        print(f'UST tracing enabled ({len(ros_events)} events)')
+        if display_list:
+            print_names_list(ros_events)
+    else:
+        print('UST tracing disabled')
+    if kernel_enabled:
+        print(f'kernel tracing enabled ({len(kernel_events)} events)')
+        if display_list:
+            print_names_list(kernel_events)
+    else:
+        print('kernel tracing disabled')
+    if len(context_fields) > 0:
+        print(f'context ({len(context_fields)} fields)')
+        if display_list:
+            print_names_list(context_fields)
+
+    if not base_path:
+        base_path = path.get_tracing_directory()
+    full_session_path = os.path.join(base_path, session_name)
+    print(f'writing tracing session to: {full_session_path}')
+
+    input('press enter to start...')
+    trace_directory = lttng.lttng_init(
+        session_name=session_name,
+        base_path=base_path,
+        append_trace=append_trace,
+        ros_events=ros_events,
+        kernel_events=kernel_events,
+        context_fields=context_fields,
+        subbuffer_size_ust=subbuffer_size_ust,
+        subbuffer_size_kernel=subbuffer_size_kernel,
+    )
+    if trace_directory is None:
+        return False
+    # Simple sanity check
+    assert trace_directory == full_session_path
+    return True
