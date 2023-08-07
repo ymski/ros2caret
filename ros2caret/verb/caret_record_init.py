@@ -11,11 +11,11 @@ def init(
     *,
     session_name: str,
     base_path: Optional[str],
-    append_trace: bool,
     ros_events: List[str],
     kernel_events: List[str],
     context_fields: List[str],
     display_list: bool = False,
+    append_trace: bool = True,
     subbuffer_size_ust: int = 8 * 4096,
     subbuffer_size_kernel: int = 32 * 4096,
 ) -> bool:
@@ -68,16 +68,27 @@ def init(
     print(f'writing tracing session to: {full_session_path}')
 
     input('press enter to start...')
-    trace_directory = lttng.lttng_init(
-        session_name=session_name,
-        base_path=base_path,
-        append_trace=append_trace,
-        ros_events=ros_events,
-        kernel_events=kernel_events,
-        context_fields=context_fields,
-        subbuffer_size_ust=subbuffer_size_ust,
-        subbuffer_size_kernel=subbuffer_size_kernel,
-    )
+    # for iron, rolling
+    if os.environ['ROS_DISTRO'] in ['iron', 'rolling']:
+        trace_directory = lttng.lttng_init(
+            session_name=session_name,
+            base_path=base_path,
+            append_trace=append_trace,
+            ros_events=ros_events,
+            kernel_events=kernel_events,
+            context_fields=context_fields,
+            subbuffer_size_ust=subbuffer_size_ust,
+            subbuffer_size_kernel=subbuffer_size_kernel,
+        )
+    # for humble
+    else:
+        trace_directory = lttng.lttng_init(
+            session_name=session_name,
+            base_path=base_path,
+            ros_events=ros_events,
+            kernel_events=kernel_events,
+            context_fields=context_fields,
+        )
     if trace_directory is None:
         return False
     # Simple sanity check
