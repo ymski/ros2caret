@@ -26,10 +26,13 @@ class CheckCTFVerb(VerbExtension):
 
     def add_arguments(self, parser, cli_name):
         parser.add_argument(
-            'trace_dir', type=str,
+            'trace_dir', type=str, nargs='+',
             help='the path to the trace directory to be checked')
 
     def main(self, *, args):
+        if len(args.trace_dir) >= 2:
+            print('Validating multiple trace data is not supported.')
+            exit(0)
         try:
             Lttng(args.trace_dir)
             Architecture('lttng', args.trace_dir)
