@@ -76,7 +76,7 @@ class CreateArchitecture:
 
     def __init__(
         self,
-        trace_dir: str | list[str],
+        trace_dir: list[str],
         architecture: Optional[Architecture] = None
     ) -> None:
         if architecture:
