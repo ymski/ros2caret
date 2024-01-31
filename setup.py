@@ -8,13 +8,10 @@ from setuptools import setup
 package_name = 'ros2caret'
 ns: dict[str, str] = {}
 
-version_path = f'{os.path.dirname(os.path.realpath(__file__))}/ros2caret/__version__.py'
-with open(version_path, 'r') as f:
-    eval(compile(f.read(), version_path, 'exec'), ns)
 
 setup(
     name=package_name,
-    version=ns['__version__'],
+    version='0.5.0',
     packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
