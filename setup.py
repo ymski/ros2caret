@@ -14,7 +14,7 @@ with open(version_path, 'r') as f:
 
 setup(
     name=package_name,
-    version='0.4.24',
+    version='5.0.0',
     packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
