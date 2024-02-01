@@ -14,7 +14,6 @@
 
 from ros2caret.verb import VerbExtension
 
-# from ..__version__ import __version__
 import os.path
 import codecs
 import re
