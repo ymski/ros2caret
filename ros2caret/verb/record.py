@@ -64,11 +64,22 @@ class CaretSessionNode(Node):
         if msg.status != Status.RECORD:
             return
 
+        log_msg = ''
+        log_msg += f'Received RCORD-state msg : \n'
+        log_msg += f'  node_name: {msg.caret_node_name}\n'
+
+        print(log_msg)
         if msg.caret_node_name in self._caret_node_names:
             self._caret_node_names.remove(msg.caret_node_name)
 
         if self._progress:
             self._progress.update()
+
+        log_msg = ''
+        log_msg += 'RECORD状態でない node 一覧は以下です\n'
+        for name in self._caret_node_names:
+            log_msg += f'  {name}\n'
+        print(log_msg)
 
         if len(self._caret_node_names) == 0:
             self.stop_progress()
@@ -95,10 +106,16 @@ class CaretSessionNode(Node):
         caret_node_num = len(self._caret_node_names)
         if caret_node_num > 0:
             print(f'{caret_node_num} recordable processes found.')
+            log_msg = ''
+            log_msg += '*** caret_trace_node の一覧は以下 ***\n'
+            for name in self._caret_node_names:
+                log_msg += f'  {name}\n'
+            log_msg += '***\n'
+            print(log_msg)
         if verbose:
             self._progress = tqdm(
                 total=caret_node_num,
-                bar_format='{n}/{total} process started recording', leave=True)
+                bar_format='{n}/{total} process started recording\n', leave=True)
 
         msg = Start()
         msg.recording_frequency = 100 if recording_frequency is None else int(recording_frequency)
