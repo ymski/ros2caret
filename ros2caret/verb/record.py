@@ -50,7 +50,8 @@ class CaretSessionNode(Node):
             End, '/caret/end_record', pub_qos)
 
         sub_qos = qos.QoSProfile(
-            history=qos.HistoryPolicy.KEEP_ALL,
+            history=qos.HistoryPolicy.KEEP_LAST,
+            depth=1000,
             reliability=qos.ReliabilityPolicy.RELIABLE,
             durability=qos.DurabilityPolicy.VOLATILE
         )
